@@ -5,6 +5,7 @@
 - [ ] Create a vBox image with the development environment already installed
 
 **An outline for a Go REST tutoritial:**
+
 1. Introduction
    1. The goals of this tutorial
    2. Why Go?
