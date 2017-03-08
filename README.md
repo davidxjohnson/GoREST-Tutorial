@@ -1,9 +1,6 @@
 # GoREST-Tutorial
 #### Dedicated to teaching REST micro-service concepts using the Go language.
 
-**To do:**
-- [ ] Create a vBox image with the development environment already installed
-
 **An outline for a Go REST tutoritial:**
 
 1. Introduction
