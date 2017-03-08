@@ -8,7 +8,7 @@
 1. Introduction
   1. The goals of this tutorial
   2. Why Go?
-  2. Why Microservices?
+  3. Why Microservices?
 1. Setup your environment
   1. Go compiler and tools
   2. Atom editor and the API Workbench
