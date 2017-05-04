@@ -59,7 +59,8 @@ func main() {
 		}
 	}
 	fmt.Printf("Fragment is: %s\n", urlObj.Fragment)
-}```
+}
+```
 
 There are some noteworthy items in the above example:
 * The url.Parse method returns a [URL struct object](https://golang.org/pkg/net/url/#URL). Inside that struct is an object of type [Userinfo](https://golang.org/pkg/net/url/#Userinfo) which is [operated on](https://golang.org/src/net/url/url.go?s=9790:9872#L336) by several methods (notably User.Password() and User.Username()).
@@ -98,6 +99,7 @@ func main() {
   fmt.Printf("\n----\n\nContent-Type: %+v\n", res.Header.Get("content-type"))
 }
 ````
+
 In the example above:
 * The call to http.Get returns a response object which contains, among other things, all the headers returned by a particular host.
 * The headers need to be iterated through in a similar fashion as query parameters in exercise 1.
@@ -141,6 +143,7 @@ func main() {
 ````
 
 The response should look something like this:
+
 ````
 Content-Type: application/json
 {
@@ -171,6 +174,7 @@ This tutorial is mainly concerned with JSON as the data exchange format for our 
 The Mime-Type `x-www-form-urlencoded` is often what is used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
 
 Let's say you have a web form that looks like this:
+
 ````
 <form enctype="multipart/form-data" action="https://httpbin.org/post" method="post">
     <input type="text" name="nick_name" value="Big Dave">
@@ -189,6 +193,7 @@ Content-Type: application/x-www-form-urlencoded
 
 nick_name=Big+Dave&nick_name=Bad+Dave&last_name=Johnson
 ````
+
 As you can see in the above example, the `Content-Type` header is key to understanding what exactly is contained in the body and how to interpret it.
 
 Fortunately, Go  makes interpreting this type of data very easy with the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method. This method parses the form data and places it in the [Request.Form](https://golang.org/pkg/net/http/#Request) data type which is  ... drum roll please ... type `map[string][]string` (surprise).
@@ -225,10 +230,13 @@ func main() {
         }
 }
 ````
+
 To test the running program, issue a curl command:
+
 ````
 curl -v 127.0.0.1:8080/v2/contacts -d "nick_name=Big Dave" -d "nick_name=Bad Dave" -d "last_name=Johnson"
 ````
+
 The response coming back from curl might look like this:
 
 ````
@@ -250,6 +258,7 @@ The response coming back from curl might look like this:
 <
 {"last_name":["Johnson"],"nick_name":["Big Dave","Bad Dave"]}
 ````
+
 Issue a command `pkill exercise4` to stop the program.
 
 In the above example:
