@@ -1,13 +1,13 @@
 # GoREST-Tutorial
-### Section 3: Concepts
-#### What is JSON?
+## Section 3: Concepts
+### What is JSON?
 Content TBD
-#### What is CGI?
+### What is CGI?
 CGI stands for Common Gateway Interface. It's a standard protocol to convey information to a server-side program (web server) and receive a standardized reply. It was first codified as a standard in 1977 and is still widely used today. The original RFC [here](https://tools.ietf.org/html/rfc3875) has the details.
 
 The Go language has good support for this protocol and is one of the easiest ways to get up and going with a REST program.
 
-#### URL Basics
+### URL Basics
 Grasping CGI concept requires an understanding of the anatomy of a URL:  
 
 `scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]`
@@ -72,14 +72,14 @@ There are some noteworthy items in the above example:
 * Note that the method [url.Query](https://golang.org/pkg/net/url/#URL.Query) (line 21) returns a [map of values](https://golang.org/pkg/net/url/#Values) `map[string][]string`. In the URL example above, the field nick_name appears twice, thus map["nick_name"] will return a []string array with two elements.
 * Because a field name can appear more than once, we use a nested for loop. The outer loop (line 22) ranges through the map and the inner loop (line 24) iterates through the []string array.
 
-#### Headers
+### Headers
 There is more than one way to pass data to our Go program using the CGI protocol. In addition to the  query string, we can use headers. Headers can be passed to the CGI program by the client and also returned by the program to the client.
 
 There are a number of [built-in meta-variables](https://tools.ietf.org/html/rfc3875#section-4.1) as part of the CGI protocol (many of these are inserted by the host web service as headers). We can also pass data through custom headers.
 
 In Go, the [net/http](https://golang.org/pkg/net/http/) package handles http requests and responses. Headers are available in either the [request object](https://golang.org/pkg/net/http/#Request) or the [response object](https://golang.org/pkg/net/http/#Response) and take on the [same structure](https://golang.org/pkg/net/http/#Header) as query strings - i.e. `map[string][]string`.
 
-**Section 3 - Exercise 2: Read headers from a response object.**
+**Exercise 2: Read headers from a response object.**
 
 The solution to exercise 2 is included below (see also exercise2.go in this repo). We can run it with `go run exercise2.go`
 
@@ -112,7 +112,7 @@ In the example above:
 * It's possible to retrieve a specific header by calling `res.Header.Get("content-type")` (line 19) for example.
 * The CGI standard specifies that reference to the headers [is not case sensitive](https://tools.ietf.org/html/rfc3875#section-6.3) but their values are.
 
-**Section 3 - Exercise 3: Place header values into a request object.**
+**Exercise 3: Place header values into a request object.**
 
 The solution to exercise 3 is below (see exercise3.go in this repo). We can run it with `go run exercise3.go`.
 
@@ -168,14 +168,14 @@ In the above example:
 * We used the call `req.Header.Add("foo", "bar")` (line 12) to insert a custom header in the request to httpbin.org (called foo with value bar).
 * The httpbin.org site replied with a list of headers it received. Note the custom header (called Foo) echoed back in the response.
 * Note that the body is in JSON format as indicated by the value of header `Content-Type` (application/json).
-* Note the use of `ioutil.ReadAll` (line 21) to read the body. We go into this in more detail in the next section.
+* Note the use of `ioutil.ReadAll` (line 21) to read the body. We'll get into more detail on this next.
 
-#### The Body and Mime-Types
+### The Body and Mime-Types
 In exercise 3 we received data back in the CGI message body.
 
 In Go, the body is contained in the request object and is of type [io.Reader](https://golang.org/pkg/io/#Reader). We read the body as a byte stream using the [io/ioutil](https://golang.org/pkg/io/ioutil/) package (using the [ioutil.ReadAll](https://golang.org/pkg/io/ioutil/#ReadAll) method). It pays to study these packages carefully to understand how they work.
 
-Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends on the header named `Content-Type` ... in this example, the value is `application/json`. This is referred to in the CGI standard as a [Mime-Type](https://tools.ietf.org/html/rfc2046). We can find a pretty comprehensive list of Mime-Types [here](http://www.freeformatter.com/mime-types-list.html).
+Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends on the header named `Content-Type`. In this example, the value is `application/json`. This is referred to in the CGI standard as a [Mime-Type](https://tools.ietf.org/html/rfc2046). We can find a pretty comprehensive list of Mime-Types [here](http://www.freeformatter.com/mime-types-list.html).
 
 This tutorial is mainly concerned with JSON as the data exchange format for our REST programming but there are a few other Mime-Types frequently used in CGI programming.
 
@@ -193,7 +193,7 @@ Let's say we are hosting a HTML page with a web form that looks like this:
 ```
 
 In the above example:
-* Note the encoding type (enctype) target (action) and HTTP method (post) on line1.
+* Note the encoding type (enctype) target (action) and HTTP method (post) on line 1.
 * When the user presses the "Save" button (line 5) the browser will encode the form data in x-www-form-urlencoded format and submit (post) it to httpbin.org for processing.
 
 The data 'POSTing' to the CGI program might look like this:
@@ -210,7 +210,7 @@ As we can see in the above example, the `Content-Type` header is key to understa
 
 Fortunately, Go  makes interpreting this type of data very easy with the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method. This method parses the form data and places it in the [Request.Form](https://golang.org/pkg/net/http/#Request) data type which is  ... drum roll please ... type `map[string][]string` (surprise).
 
-**Section 3 - Exercise 4: Write a service to receive form data.**
+**Exercise 4: Write a service to receive form data.**
 
 It's time to write our first web service. In this exercise we'll be introduced to http.ListenAndServe (which stands up a web service) and http.HandleFunc (which handles requests). We'll also use the JSON encoder to send back json data to the requester.
 
@@ -279,7 +279,7 @@ In the above code example:
 * We also defined in the main() function a http server that listens for requests (line 20).
 * A handler function  `postContact` (line 9) is defined that can read the request and write a response. The ResponseWriter is used to write back a response to the requester (lines 12-14). The Request object contains the data sent to the CGI program by the client (line 9).
 * Note that we are able to test the HTTP method and content-type (line 10) to determine if we received the expected CGI encoding from the client.
-* The handler invoked the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method (line 11) to parse the data into a native data type map[string][]string. Note that ParseForm() must be called before reading the Request.Body.
+* The handler invoked the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method (line 11) to parse the data into a native data type `map[string][]string`. Note that ParseForm() must be called before reading the Request.Body.
 * The return Mime-Type was set to `application/json` (line 12). Note that the `Content-Type` header must be written before the body or return status.
 * The form data was converted to json (using the [json.NewEncoder](https://golang.org/pkg/encoding/json/) method) and written back as a response (line 13).  
-* A status code of 200 (OK) was written to the response (line 14). We can find a list of HTTP status codes and their meaning [here](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html).
+* A status code of 200 (OK) was written to the response (line 14). We can find a list of HTTP status codes and their meaning [here](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html). The HTTP status code is part of the CGI standard and is used by the client to quickly discovery whether or not the request was successful or not and why.
