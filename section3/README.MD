@@ -121,15 +121,15 @@ In this example, we take advantage of [https://httpbin.org/](https://httpbin.org
 We're also introducing in this exercise another source of data described in the CGI protocol; the body.
 
 ```
-1 package main
-2
-3 import (
-4         "fmt"
-5         "io/ioutil"
-6         "net/http"
-7 )
-8
-9 func main() {
+ 1 package main
+ 2
+ 3 import (
+ 4         "fmt"
+ 5         "io/ioutil"
+ 6         "net/http"
+ 7 )
+ 8
+ 9 func main() {
 10         client := &http.Client{}
 11         req, err := http.NewRequest("GET", "https://httpbin.org/headers", nil)
 12         req.Header.Add("foo", "bar")
@@ -212,7 +212,7 @@ As we can see in the above example, the `Content-Type` header is key to understa
 
 Fortunately, Go  makes interpreting this type of data very easy with the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method. This method parses the form data and places it in the [Request.Form](https://golang.org/pkg/net/http/#Request) data type which is  ... drum roll please ... type `map[string][]string` (surprise).
 
-**Exercise 4: Write a service to receive form data.**
+**Exercise 4: Write a service to receive application/x-www-form-urlencoded.**
 
 It's time to write our first web service. In this exercise we'll be introduced to http.ListenAndServe (which stands up a web service) and http.HandleFunc (which handles requests). We'll also use the JSON encoder to send back json data to the requester.
 
@@ -248,7 +248,10 @@ The solution to exercise 4 is listed below (see also exercise4.go in this repo).
 To test the running program, issue a curl command:
 
 ```
-curl -v 127.0.0.1:8080/v2/contacts -d "nick_name=Big Dave" -d "nick_name=Bad Dave" -d "last_name=Johnson"
+curl -v 127.0.0.1:8080/v2/contacts \
+  -d "nick_name=Big Dave" \
+  -d "nick_name=Bad Dave" \
+  -d "last_name=Johnson"
 ```
 
 The response coming back from curl might look like this:
@@ -290,7 +293,7 @@ In the above code example:
 
 The MIME-Type `multipart/form-data` is another frequently used method to POST data to a server-side CGI program. A web browser can code form data in this format before POSTing it to the server.
 
-Borrowing from exercise 4, let's say we are hosting a HTML page with a web form that slightly different than before:
+Borrowing from exercise 4, let's say we are hosting a HTML page with a web form that is slightly different than before:
 
 ```
 1 <form enctype="multipart/form-data" action="https://httpbin.org/post" method="post">
@@ -367,9 +370,9 @@ To test the program, issue a curl command:
 ```
 $ curl -v 127.0.0.1:8080/v2/contacts \
   -F "nick_name=Big Dave" \
-	-F "nick_name=Bad Dave" \
-	-F "last_name=Johnson" \
-	-F sampledata=@./exercise5.dat
+  -F "nick_name=Bad Dave" \
+  -F "last_name=Johnson" \
+  -F sampledata=@./exercise5.dat
 ```
 The output might look like the following:
 
@@ -518,7 +521,7 @@ We can test the program by issuing a curl command:
 ```
 curl -sv -XPOST 127.0.0.1:8080/v2/contacts \
   -H "Content-Type: application/json" \
-	--data-binary '{"last_name":"Johnson","nick_name":["Big Dave","Bad Dave"]}'
+  --data-binary '{"last_name":"Johnson","nick_name":["Big Dave","Bad Dave"]}'
 ```
 
 The response will look similar to the following:
@@ -549,14 +552,16 @@ The response will look similar to the following:
 }
 ```
 
-Some noteworthy items the above example:
+Issue a command `pkill exercise6` to stop the program.
+
+Some noteworthy items in the above example:
 * We added a small utility function (line 19) that generates unique record keys.
-* Note that we started using the [constants](https://golang.org/pkg/net/http/#pkg-constants) in the http package for the status return codes (lines 29,26 and 41).
+* Note that we started using the [constants](https://golang.org/pkg/net/http/#pkg-constants) in the http package for the status return codes (lines 29, 26 and 41).
 * Note that we introduce a new data structure (line 12) to receive the json data. There's a good tutorial on the marshal/unmarshal of json [here](https://blog.golang.org/json-and-go). There's also a good JSON to Go converter [here](https://mholt.github.io/json-to-go/) that will generate some Go code to speed things along.
 * We instantiate the `contact` data structure (line 32) and `unmarshal` the JSON data from the body into the contact  (lines 33-34). Note that the data being passed has two fields and the structure has three.
 * We then assign a new record ID to the contact (line 39) and convert (Marshal) the amalgamation back to JSON data in the response (line 42).
 
-Now that we've covered how CGI works in Go, it's time to move on to the REST API standard for implementing CGI programs.
+Now that we've covered numerous examples of how CGI works in Go, it's time to move on to the REST API standard for implementing CGI programs.
 
 ### What is REST?
 
