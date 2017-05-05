@@ -170,16 +170,18 @@ In the above example:
 * Note that the body is in JSON format as indicated by the value of header `Content-Type` (application/json).
 * Note the use of `ioutil.ReadAll` (line 21) to read the body. We'll get into more detail on this next.
 
-### The Body and Mime-Types
+### The Body and MIME-Types
 In exercise 3 we received data back in the CGI message body.
 
 In Go, the body is contained in the request object and is of type [io.Reader](https://golang.org/pkg/io/#Reader). We read the body as a byte stream using the [io/ioutil](https://golang.org/pkg/io/ioutil/) package (using the [ioutil.ReadAll](https://golang.org/pkg/io/ioutil/#ReadAll) method). It pays to study these packages carefully to understand how they work.
 
-Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends on the header named `Content-Type`. In this example, the value is `application/json`. This is referred to in the CGI standard as a [Mime-Type](https://tools.ietf.org/html/rfc2046). We can find a pretty comprehensive list of Mime-Types [here](http://www.freeformatter.com/mime-types-list.html).
+Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends on the header named `Content-Type`. In this example, the value is `application/json`. This is referred to in the CGI standard as a [MIME-Type](https://tools.ietf.org/html/rfc2046). We can find a pretty comprehensive list of MIME-Types [here](http://www.freeformatter.com/mime-types-list.html).
 
-This tutorial is mainly concerned with JSON as the data exchange format for our REST programming but there are a few other Mime-Types frequently used in CGI programming.
+This tutorial is mainly concerned with JSON as the data exchange format for our REST programming but there are a few other MIME-Types frequently used in CGI programming.
 
-The Mime-Type `x-www-form-urlencoded` (for example) is often what is used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
+#### MIME-Type x-www-form-urlencoded
+
+The MIME-Type `x-www-form-urlencoded` is often what is used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
 
 Let's say we are hosting a HTML page with a web form that looks like this:
 
@@ -277,9 +279,285 @@ In the above code example:
 * We defined in main() a path that matches a handler function (line 19). This is part of Go's multiplex capabilities. This makes it possible to route different paths to different handlers.
 * The function http.HandleFunc (line 19) requires that the handler function (line 9) accept [two parameters](https://golang.org/pkg/net/http/#Handler): A [ResponseWriter](https://golang.org/pkg/net/http/#ResponseWriter) and a pointer to the Request object (which we are already familiar with).
 * We also defined in the main() function a http server that listens for requests (line 20).
-* A handler function  `postContact` (line 9) is defined that can read the request and write a response. The ResponseWriter is used to write back a response to the requester (lines 12-14). The Request object contains the data sent to the CGI program by the client (line 9).
+* A handler function  `postContact` (line 9) is defined so that we can read the request and write a response. The ResponseWriter is used to write back a response to the requester (lines 12-14). The Request object contains the data sent to the CGI program by the client (line 9).
 * Note that we are able to test the HTTP method and content-type (line 10) to determine if we received the expected CGI encoding from the client.
 * The handler invoked the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method (line 11) to parse the data into a native data type `map[string][]string`. Note that ParseForm() must be called before reading the Request.Body.
-* The return Mime-Type was set to `application/json` (line 12). Note that the `Content-Type` header must be written before the body or return status.
+* The return MIME-Type was set to `application/json` (line 12). Note that the `Content-Type` header must be written before the body or return status.
 * The form data was converted to json (using the [json.NewEncoder](https://golang.org/pkg/encoding/json/) method) and written back as a response (line 13).  
 * A status code of 200 (OK) was written to the response (line 14). We can find a list of HTTP status codes and their meaning [here](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html). The HTTP status code is part of the CGI standard and is used by the client to quickly discovery whether or not the request was successful or not and why.
+
+#### MIME-Type multipart/form-data
+
+The MIME-Type `multipart/form-data` is another frequently used method to POST data to a server-side CGI program. A web browser can code form data in this format before POSTing it to the server.
+
+Borrowing from exercise 4, let's say we are hosting a HTML page with a web form that slightly different than before:
+
+```
+1 <form enctype="multipart/form-data" action="https://httpbin.org/post" method="post">
+2     <input type="text" name="nick_name" value="Big Dave">
+3     <input type="text" name="nick_name" value="Bad Dave">
+4     <input type="text" name="last_name" value="Johnson">
+5     <input type="submit" value="Save" />
+6 </form>
+```
+
+In the above example, note that the only thing that changed is the encoding type (enctype). The data submitted to the web server might look similar to the following:
+
+```
+POST /post HTTP/1.1
+Host: httpbin.org
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="nick_name"
+
+Big Dave
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="nick_name"
+
+Bad Dave
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="last_name"
+
+Johnson
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+```
+
+Ok, this looks a lot more complex to process than the `x-www-form-urlencoded` encoding in exercise 4. Fortunately, Go comes to the rescue again and makes this relatively easy by providing the [ParseMultipartForm](https://golang.org/pkg/net/http/#Request.ParseMultipartForm) method which places the data in [MultipartForm](https://golang.org/pkg/net/http/#Request) field in the Request object.
+
+**Exercise 5: Write a program to receive multipart/form-data.**
+
+The solution to exercise 5 is listed below (see also exercise5.go in this repo) and we can run it with `go run exercise5.go &`.
+
+```
+1 package main
+2
+3 import (
+4         "encoding/json"
+5         "io"
+6         "net/http"
+7         "strings"
+8 )
+9
+10 // This is a handler function to receive POSTed form data
+11 func postContact(w http.ResponseWriter, r *http.Request) {
+12         if r.Method == "POST" && strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
+13                 r.ParseMultipartForm(0)
+14                 w.Header().Set("Content-Type", "application/json")
+15                 json.NewEncoder(w).Encode(r.MultipartForm)
+16                 file, _, err := r.FormFile("sampledata")
+17                 defer file.Close()
+18                 if err == nil {
+19                         w.Write([]byte("---sample data---\n"))
+20                         io.Copy(w, file)
+21                 }
+22         }
+23 }
+24
+25 func main() {
+26         http.HandleFunc("/v2/contacts", postContact)
+27         err := http.ListenAndServe("127.0.0.1:8080", nil)
+28         if err != nil {
+29                 panic(err.Error)
+30         }
+31 }
+```
+To test the program, issue a curl command:
+
+```
+$ curl -v 127.0.0.1:8080/v2/contacts \
+  -F "nick_name=Big Dave" \
+	-F "nick_name=Bad Dave" \
+	-F "last_name=Johnson" \
+	-F sampledata=@./exercise5.dat
+```
+The output might look like the following:
+
+```
+> POST /v2/contacts HTTP/1.1
+> Host: 127.0.0.1:8080
+> User-Agent: curl/7.47.0
+> Accept: */*
+> Content-Length: 1088
+> Expect: 100-continue
+> Content-Type: multipart/form-data; boundary=------------------------b8d179fba566a850
+>
+< HTTP/1.1 100 Continue
+} [477 bytes data]
+< HTTP/1.1 200 OK
+< Content-Type: application/json
+< Date: Thu, 04 May 2017 18:32:07 GMT
+< Content-Length: 259
+<
+{ [259 bytes data]
+100  1347  100   259  100  1088   5638  23687 --:--:-- --:--:-- --:--:-- 24727
+* Connection #0 to host 127.0.0.1 left intact
+{
+  "Value": {
+    "last_name": [
+      "Johnson"
+    ],
+    "nick_name": [
+      "Big Dave",
+      "Bad Dave"
+    ]
+  },
+  "File": {
+    "exercise": [
+      {
+        "Filename": "exercise5.go",
+        "Header": {
+          "Content-Disposition": [
+            "form-data; name=\"exercise\"; filename=\"exercise5.go\""
+          ],
+          "Content-Type": [
+            "application/octet-stream"
+          ]
+        }
+      }
+    ]
+  }
+}
+---file---
+cGFja2FnZSBtYWluCgppbXBvcnQgKAogICAgICAgICJlbmNvZGluZy9qc29uIgogICAgICAgICJp
+byIKICAgICAgICAibmV0L2h0dHAiCiAgICAgICAgInN0cmluZ3MiCikKCi8vIFRoaXMgaXMgYSBo
+YW5kbGVyIGZ1bmN0aW9uIHRvIHJlY2VpdmUgUE9TVGVkIGZvcm0gZGF0YQpmdW5jIHBvc3RDb250
+YWN0KHcgaHR0cC5SZXNwb25zZVdyaXRlciwgciAqaHR0cC5SZXF1ZXN0KSB7CiAgICAgICAgaWYg
+ci5NZXRob2QgPT0gIlBPU1QiICYmIHN0cmluZ3MuQ29udGFpbnMoci5IZWFkZXIuR2V0KCJDb250
+ZW50LVR5cGUiKSwgIm11bHRpcGFydC9mb3JtLWRhdGEiKSB7CiAgICAgICAgICAgICAgICByLlBh
+cnNlTXVsdGlwYXJ0Rm9ybSgwKQogICAgICAgICAgICAgICAgdy5IZWFkZXIoKS5TZXQoIkNvbnRl
+bnQtVHlwZSIsICJhcHBsaWNhdGlvbi9qc29uIikKICAgICAgICAgICAgICAgIGpzb24uTmV3RW5j
+b2Rlcih3KS5FbmNvZGUoci5NdWx0aXBhcnRGb3JtKQogICAgICAgICAgICAgICAgZmlsZSwgZXJy
+IDo9IHIuTXVsdGlwYXJ0Rm9ybS5GaWxlWyJleGVyY2lzZSJdWzBdLk9wZW4oKQogICAgICAgICAg
+ICAgICAgaWYgZXJyID09IG5pbCB7CiAgICAgICAgICAgICAgICAgICAgICAgIHcuV3JpdGUoW11i
+eXRlKCItLS1maWxlLS0tXG4iKSkKICAgICAgICAgICAgICAgICAgICAgICAgaW8uQ29weSh3LCBm
+aWxlKQogICAgICAgICAgICAgICAgfQogICAgICAgIH0KfQoKZnVuYyBtYWluKCkgewogICAgICAg
+IGh0dHAuSGFuZGxlRnVuYygiL3YyL2NvbnRhY3RzIiwgcG9zdENvbnRhY3QpCiAgICAgICAgZXJy
+IDo9IGh0dHAuTGlzdGVuQW5kU2VydmUoIjEyNy4wLjAuMTo4MDgwIiwgbmlsKQogICAgICAgIGlm
+IGVyciAhPSBuaWwgewogICAgICAgICAgICAgICAgcGFuaWMoZXJyLkVycm9yKQogICAgICAgIH0K
+fQo=
+```
+Be sure to issue a `pkill exercise5` command to stop the program.
+
+In the above example, there are a lot of interesting things going on:
+* In the `postContact` handler (line 12), we altered the test for Content-Type to use `Contains` instead of an exact match. The reason for this is that the header name in this case is actually `Content-Type: multipart/form-data; boundary=------------------------b8d179fba566a850`, so we have to search for a partial match.
+* We use the `ParseMultipartForm` method (line 13) instead of the `ParseForm` method of exercise 4. There are different methods for different MIME-Types.
+* The data ends up in `Request.MultipartForm` (line 13) instead of `Request.Form` of exercise 4. There are different data structure for different MIME-Types.
+* Note that a file was included in the curl request. This is the main reason to use `multipart/form-data` in the first place. The data and the file are different parts of the request (thus `multipart`).
+* The uploaded file can be read by using the [FormFile](https://golang.org/pkg/net/http/#Request.FormFile) data element in the Request object (line 16).
+* For demonstration purposes, we just output the raw file as part of the response (line 20).
+* There are many gems in the Request object that are worth studying.
+
+#### MIME-Type application/json
+
+There are other MIME-Types, but for the purposes of this tutorial, we will cover just one more of major significance in REST programming; which is (you guessed it) `application/json`.
+
+**Exercise 6: Write a program to receive application/json.**
+
+We've already created examples where we output JSON data from our CGI program. In this exercise, we will also receive JSON data and convert it to a native Go structure for processing. In many ways, it's one of the easiest MIME-Types to work with (we saved the best for the last).
+
+The solution to exercise 6 is listed below (see also exercise6.go in this repo) and we can run it with `go run exercise6.go &`.
+
+
+```
+1 package main
+2
+3 import (
+4         "crypto/rand"
+5         "encoding/json"
+6         "fmt"
+7         "io/ioutil"
+8         "net/http"
+9 )
+10
+11 // structure to hold unmarshaled json data
+12 type Contact struct {
+13         RecordKey string   `json:"record_key"`
+14         LastName  string   `json:"last_name"`
+15         NickName  []string `json:"nick_name"`
+16 }
+17
+18 // This generates a new record key
+19 func uuid() (uuid string) {
+20         b := make([]byte, 16)
+21         rand.Read(b)
+22         uuid = fmt.Sprintf("%X-%X-%X-%X-%X", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+23         return
+24 }
+25
+26 // This is a handler function to receive POSTed form data
+27 func postContact(w http.ResponseWriter, r *http.Request) {
+28         if r.Method != "POST" || r.Header.Get("Content-Type") != "application/json" {
+29                 w.WriteHeader(http.StatusBadRequest)
+30                 return
+31         }
+32         var contact Contact
+33         body, _ := ioutil.ReadAll(r.Body)
+34         err := json.Unmarshal(body, &contact)
+35         if err != nil {
+36                 w.WriteHeader(http.StatusBadRequest)
+37                 return
+38         }
+39         contact.RecordKey = uuid()
+40         w.Header().Set("Content-Type", "application/json")
+41         w.WriteHeader(http.StatusCreated)
+42         json.NewEncoder(w).Encode(contact)
+43 }
+44
+45 func main() {
+46         http.HandleFunc("/v2/contacts", postContact)
+47         err := http.ListenAndServe("127.0.0.1:8080", nil)
+48         if err != nil {
+49                 panic(err.Error)
+50         }
+51 }
+```
+
+We can test the program by issuing a curl command:
+
+```
+curl -sv -XPOST 127.0.0.1:8080/v2/contacts \
+  -H "Content-Type: application/json" \
+	--data-binary '{"last_name":"Johnson","nick_name":["Big Dave","Bad Dave"]}'
+```
+
+The response will look similar to the following:
+
+```
+*   Trying 127.0.0.1...
+* Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0)
+> POST /v2/contacts HTTP/1.1
+> Host: 127.0.0.1:8080
+> User-Agent: curl/7.47.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 59
+>
+* upload completely sent off: 59 out of 59 bytes
+< HTTP/1.1 201 Created
+< Content-Type: application/json
+< Date: Fri, 05 May 2017 01:10:49 GMT
+< Content-Length: 112
+<
+{
+  "record_key": "804621B0-CECA-F3D6-1660-757091435D76",
+  "last_name": "Johnson",
+  "nick_name": [
+    "Big Dave",
+    "Bad Dave"
+  ]
+}
+```
+
+Some noteworthy items the above example:
+* We added a small utility function (line 19) that generates unique record keys.
+* Note that we started using the [constants](https://golang.org/pkg/net/http/#pkg-constants) in the http package for the status return codes (lines 29,26 and 41).
+* Note that we introduce a new data structure (line 12) to receive the json data. There's a good tutorial on the marshal/unmarshal of json [here](https://blog.golang.org/json-and-go). There's also a good JSON to Go converter [here](https://mholt.github.io/json-to-go/) that will generate some Go code to speed things along.
+* We instantiate the `contact` data structure (line 32) and `unmarshal` the JSON data from the body into the contact  (lines 33-34). Note that the data being passed has two fields and the structure has three.
+* We then assign a new record ID to the contact (line 39) and convert (Marshal) the amalgamation back to JSON data in the response (line 42).
+
+Now that we've covered how CGI works in Go, it's time to move on to the REST API standard for implementing CGI programs.
+
+### What is REST?
+
+Content TBD
