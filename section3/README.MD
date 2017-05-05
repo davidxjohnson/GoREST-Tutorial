@@ -35,7 +35,7 @@ The go package that handles URL encoding is the [net/url package](https://golang
 **Section 3 - Exercise 1: Parse the example URL**
 The solution for exercise 1 is included below (see also exercise1.go in this repo). We can cut paste the code into [https://play.golang.org/](https://play.golang.org/p/l0vg0TmMhN) or just run it with `go run exercise1.go`.
 
-```
+```go
  1 package main
  2
  3 import (
@@ -83,7 +83,7 @@ In Go, the [net/http](https://golang.org/pkg/net/http/) package handles http req
 
 The solution to exercise 2 is included below (see also exercise2.go in this repo). We can run it with `go run exercise2.go`
 
-```
+```go
  1 package main
  2
  3 import (
@@ -120,7 +120,7 @@ In this example, we take advantage of [https://httpbin.org/](https://httpbin.org
 
 We're also introducing in this exercise another source of data described in the CGI protocol; the body.
 
-```
+```go
  1 package main
  2
  3 import (
@@ -151,7 +151,7 @@ We're also introducing in this exercise another source of data described in the 
 
 The response should look something like this:
 
-```
+```json
 Content-Type: application/json
 {
   "headers": {
@@ -185,7 +185,7 @@ The MIME-Type `x-www-form-urlencoded` is often what is used by web browsers to '
 
 Let's say we are hosting a HTML page with a web form that looks like this:
 
-```
+```html
 1 <form enctype="x-www-form-urlencoded" action="https://httpbin.org/post" method="post">
 2     <input type="text" name="nick_name" value="Big Dave">
 3     <input type="text" name="nick_name" value="Bad Dave">
@@ -218,7 +218,7 @@ It's time to write our first web service. In this exercise we'll be introduced t
 
 The solution to exercise 4 is listed below (see also exercise4.go in this repo). We can use `go run exercise4.go &` to run the program and put it in the background (note the & at the end of the command):
 
-```
+```go
  1 package main
  2
  3 import (
@@ -247,7 +247,7 @@ The solution to exercise 4 is listed below (see also exercise4.go in this repo).
 
 To test the running program, issue a curl command:
 
-```
+```bash
 curl -v 127.0.0.1:8080/v2/contacts \
   -d "nick_name=Big Dave" \
   -d "nick_name=Bad Dave" \
@@ -256,7 +256,7 @@ curl -v 127.0.0.1:8080/v2/contacts \
 
 The response coming back from curl might look like this:
 
-```
+```json
 *   Trying 127.0.0.1...
 * Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0)
 > POST /v2/contacts HTTP/1.1
@@ -295,7 +295,7 @@ The MIME-Type `multipart/form-data` is another frequently used method to POST da
 
 Borrowing from exercise 4, let's say we are hosting a HTML page with a web form that is slightly different than before:
 
-```
+```html
 1 <form enctype="multipart/form-data" action="https://httpbin.org/post" method="post">
 2     <input type="text" name="nick_name" value="Big Dave">
 3     <input type="text" name="nick_name" value="Bad Dave">
@@ -332,7 +332,7 @@ Ok, this looks a lot more complex to process than the `x-www-form-urlencoded` en
 
 The solution to exercise 5 is listed below (see also exercise5.go in this repo) and we can run it with `go run exercise5.go &`.
 
-```
+```go
 1 package main
 2
 3 import (
@@ -367,7 +367,7 @@ The solution to exercise 5 is listed below (see also exercise5.go in this repo) 
 ```
 To test the program, issue a curl command:
 
-```
+```bash
 $ curl -v 127.0.0.1:8080/v2/contacts \
   -F "nick_name=Big Dave" \
   -F "nick_name=Bad Dave" \
@@ -376,7 +376,7 @@ $ curl -v 127.0.0.1:8080/v2/contacts \
 ```
 The output might look like the following:
 
-```
+```json
 > POST /v2/contacts HTTP/1.1
 > Host: 127.0.0.1:8080
 > User-Agent: curl/7.47.0
@@ -386,15 +386,11 @@ The output might look like the following:
 > Content-Type: multipart/form-data; boundary=------------------------b8d179fba566a850
 >
 < HTTP/1.1 100 Continue
-} [477 bytes data]
 < HTTP/1.1 200 OK
 < Content-Type: application/json
 < Date: Thu, 04 May 2017 18:32:07 GMT
 < Content-Length: 259
 <
-{ [259 bytes data]
-100  1347  100   259  100  1088   5638  23687 --:--:-- --:--:-- --:--:-- 24727
-* Connection #0 to host 127.0.0.1 left intact
 {
   "Value": {
     "last_name": [
@@ -462,7 +458,7 @@ We've already created examples where we output JSON data from our CGI program. I
 The solution to exercise 6 is listed below (see also exercise6.go in this repo) and we can run it with `go run exercise6.go &`.
 
 
-```
+```go
 1 package main
 2
 3 import (
@@ -518,7 +514,7 @@ The solution to exercise 6 is listed below (see also exercise6.go in this repo) 
 
 We can test the program by issuing a curl command:
 
-```
+```bash
 curl -sv -XPOST 127.0.0.1:8080/v2/contacts \
   -H "Content-Type: application/json" \
   --data-binary '{"last_name":"Johnson","nick_name":["Big Dave","Bad Dave"]}'
@@ -526,7 +522,7 @@ curl -sv -XPOST 127.0.0.1:8080/v2/contacts \
 
 The response will look similar to the following:
 
-```
+```json
 *   Trying 127.0.0.1...
 * Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0)
 > POST /v2/contacts HTTP/1.1
