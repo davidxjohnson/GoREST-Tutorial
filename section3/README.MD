@@ -1,7 +1,79 @@
 # GoREST-Tutorial
 ## Section 3: Concepts
 ### What is JSON?
-Content TBD
+JSON stands for JavaScript Object Notation, It's a simple and light-weight data encoding standard. It's generally easier to read, code and decode than XML (SOAP) which is probably why JSON has grow in popularity.
+
+#### JSON Data Types
+There are a fairly limited number of data types defined in JSON:
+* string - any alphanumeric value encased in double quotes - i.e. "Johnson"
+* boolean - true or false
+* null
+* number - can be integer or float
+* array - data encased by []
+* object - data encased by {}
+
+#### JSON Structure and Syntax
+The syntax rules are pretty simple:
+* data field names are encased in double quotes followed by a colon and then the data.
+  * "last_name": "Johnson"
+  * "record_count": 50
+  * "is_retired": false
+* Arrays are comma-separated lists of the same data type encased in braces []:
+  * "nick_names": ["Big Dave","Bad Dave"]
+  * "prime_numbers": [1,2,3,5,7,11,13]
+* Objects are groupings of any data type (or other objects) encased in brackets {}
+  * "contact": {"last_name": "Johnson", "nick_names":["Big Dave","Bad Dave"], "age":50, "retired": false }
+  * { "contact_count": 2, "contacts": [{...},{...} etc...] }
+* JSON provides no means of adding comments in the data
+
+Here's a pretty print example of JSON:
+
+```JSON
+{
+	"contact_count ": 2,
+	"contacts": [{
+		"last_name": "Johnson",
+		"nick_names": ["Big Dave", "Bad Dave"],
+		"age": 50,
+    "retired": false
+	}, {
+		"last_name": "Jones",
+		"nick_names": ["Billy", "Bill"],
+		"age": 58,
+    "retired": true
+	}]
+}
+```
+
+For reference, the native Go package used to process JSON: [https://golang.org/pkg/encoding/json/] We'll use this package later in this section to send and receive json data in our Go program.
+
+#### JSON Schemas
+JSON schemas are similar in concept to XML schemas, but generally less complex than their XML brethren. A JSON schema is itself JSON, but it's data about the data (metadata) that expresses constraints about JSON documents.
+
+Probably the best way to learn how to use JSON schemas is to play around with an [editor](https://jsonschema.net/#/editor) to see what is possible.
+
+Below is an abbreviated list of the typical constraints used in JSON schemas:
+* Ensures that a field is of the correct data type.
+* Describes whether or not a value is required.
+* Restricts a valid value to a list of possible ones (enumeration) - i.e. fruit must be one of banana, apple or peach.
+* Sets minimum or maximum length or values for a field - i.e. disallow negative numbers, zip must be 5 in length etc.
+* Sets a regular expression pattern match to validate input for things like url, ip, phone numbers etc.
+* Enforces uniqueness within a list of values.
+
+Imagine if we had to write code to validate all of the above for every field in the JSON received for processing. That's a lot of coding. Fortunately, there are a growing list of schema validation packages for Go on GitHub. The one I've had personal experience with is [gojsonschema](https://github.com/xeipuuv/gojsonschema). It has good community support, easy to use and the one that we'll employ for this tutorial.
+
+We'll start using JSON schemas in section 6 but we only touch on the topic in this section because we're focused on basic concepts only.
+
+#### Some useful JSON Tutorials, Tools and References
+Here is a short list of useful JSON tools and tutorials:
+* A simple tutorial / cheat sheet on forming valid JSON: [http://json.org/]
+* Is the syntax invalid for your JSON? Fix it here: [http://jsonlint.com]
+* A nifty tool that converts valid JSON to a Go data structure (very useful): [http://mholt.github.io/json-to-go/]
+* JSON schemas are indispensable! This site will help you create your schemas: [https://jsonschema.net/#/editor]
+* JSON linter can help you test your JSON data and schema: [https://jsonschemalint.com]
+* The Go package used to process JSON: [https://golang.org/pkg/encoding/json/]
+* A growing list of JSON schema validation packages for Go: [https://github.com/search?l=Go&q=go+json+schema+validation]
+
 ### What is CGI?
 CGI stands for Common Gateway Interface. It's a standard protocol to convey information to a server-side program (web server) and receive a standardized reply. It was first codified as a standard in 1977 and is still widely used today. The original RFC [here](https://tools.ietf.org/html/rfc3875) has the details.
 
@@ -66,10 +138,25 @@ The solution for exercise 1 is included below (see also exercise1.go in this rep
 28         fmt.Printf("Fragment is: %s\n", urlObj.Fragment)
 29 }
 ```
+The output of this program looks like this:
+```
+Protocol is: ldap
+Host and port are: localhost:8080
+User name: bozo
+User password is set: true, and the password is: GoIZwe!rD
+Path is: /v2/contacts
+RawQuery is: first_name=Big+Dave&nick_name=Bad%20Dave&nick_name=Johnson
+        Key: first_name
+                Value[0]: Big Dave
+        Key: nick_name
+                Value[0]: Bad Dave
+                Value[1]: Johnson
+Fragment is: page1
+```
 
 There are some noteworthy items in the above example:
-* The url.Parse method (line 10) returns a [URL struct object](https://golang.org/pkg/net/url/#URL). Inside that struct is an object of type [Userinfo](https://golang.org/pkg/net/url/#Userinfo) which is [operated on](https://golang.org/src/net/url/url.go?s=9790:9872#L336) by several methods (notably User.Password() and User.Username()).
-* Note that the method [url.Query](https://golang.org/pkg/net/url/#URL.Query) (line 21) returns a [map of values](https://golang.org/pkg/net/url/#Values) `map[string][]string`. In the URL example above, the field nick_name appears twice, thus map["nick_name"] will return a []string array with two elements.
+* The url.Parse() method (line 10) returns a [URL struct object](https://golang.org/pkg/net/url/#URL). Inside that struct is an object of type [Userinfo](https://golang.org/pkg/net/url/#Userinfo) which is [operated on](https://golang.org/src/net/url/url.go?s=9790:9872#L336) by several methods (notably URL.User.Password() and URL.User.Username()).
+* Note that the method [URL.Query()](https://golang.org/pkg/net/url/#URL.Query) (line 21) returns a [map of values](https://golang.org/pkg/net/url/#Values) `map[string][]string`. In the URL example above, the field nick_name appears twice, thus map["nick_name"] will return a []string array with two elements.
 * Because a field name can appear more than once, we use a nested for loop. The outer loop (line 22) ranges through the map and the inner loop (line 24) iterates through the []string array.
 
 ### Headers
@@ -77,7 +164,7 @@ There is more than one way to pass data to our Go program using the CGI protocol
 
 There are a number of [built-in meta-variables](https://tools.ietf.org/html/rfc3875#section-4.1) as part of the CGI protocol (many of these are inserted by the host web service as headers). We can also pass data through custom headers.
 
-In Go, the [net/http](https://golang.org/pkg/net/http/) package handles http requests and responses. Headers are available in either the [request object](https://golang.org/pkg/net/http/#Request) or the [response object](https://golang.org/pkg/net/http/#Response) and take on the [same structure](https://golang.org/pkg/net/http/#Header) as query strings - i.e. `map[string][]string`.
+In Go, the [net/http](https://golang.org/pkg/net/http/) package handles http requests and responses. Headers are available in either the [Request object](https://golang.org/pkg/net/http/#Request) or the [Response object](https://golang.org/pkg/net/http/#Response) and take on the [same structure](https://golang.org/pkg/net/http/#Header) as query strings - i.e. `map[string][]string`.
 
 **Exercise 2: Read headers from a response object.**
 
@@ -105,12 +192,28 @@ The solution to exercise 2 is included below (see also exercise2.go in this repo
 19         fmt.Printf("\n----\n\nContent-Type: %+v\n", res.Header.Get("content-type"))
 20 }
 ```
+The output from this program might look like this:
+```
+Vary: Accept-Encoding
+Content-Type: text/plain
+Last-Modified: Mon, 06 Feb 2017 22:00:00 GMT
+X-Content-Type-Options: nosniff
+X-Xss-Protection: 1; mode=block
+Accept-Ranges: bytes
+Date: Sat, 06 May 2017 14:29:11 GMT
+Expires: Sat, 06 May 2017 14:29:11 GMT
+Cache-Control: private, max-age=0
+Server: sffe
+----
+
+Content-Type: text/plain
+```
 
 In the example above:
-* The call to [http.Get](https://golang.org/pkg/net/http/#Get) (line 9) returns a response object which contains, among other things, all the headers returned by a particular host.
+* The call to the [http.Get()](https://golang.org/pkg/net/http/#Get) method (line 9) returns a response object which contains, among other things, all the headers returned by a particular host.
 * The headers need to be iterated through (line 13) in a similar fashion as query parameters in exercise 1.
 * It's possible to retrieve a specific header by calling `res.Header.Get("content-type")` (line 19) for example.
-* The CGI standard specifies that reference to the headers [is not case sensitive](https://tools.ietf.org/html/rfc3875#section-6.3) but their values are.
+* The CGI standard specifies that header names [are not case sensitive](https://tools.ietf.org/html/rfc3875#section-6.3) but their values are.
 
 **Exercise 3: Place header values into a request object.**
 
@@ -151,7 +254,7 @@ We're also introducing in this exercise another source of data described in the 
 
 The response should look something like this:
 
-```json
+```
 Content-Type: application/json
 {
   "headers": {
@@ -168,12 +271,12 @@ In the above example:
 * We used the call `req.Header.Add("foo", "bar")` (line 12) to insert a custom header in the request to httpbin.org (called foo with value bar).
 * The httpbin.org site replied with a list of headers it received. Note the custom header (called Foo) echoed back in the response.
 * Note that the body is in JSON format as indicated by the value of header `Content-Type` (application/json).
-* Note the use of `ioutil.ReadAll` (line 21) to read the body. We'll get into more detail on this next.
+* Note the use of `ioutil.ReadAll()` method (line 21) to read the body. We'll get into more detail on this next.
 
 ### The Body and MIME-Types
 In exercise 3 we received data back in the CGI message body.
 
-In Go, the body is contained in the request object and is of type [io.Reader](https://golang.org/pkg/io/#Reader). We read the body as a byte stream using the [io/ioutil](https://golang.org/pkg/io/ioutil/) package (using the [ioutil.ReadAll](https://golang.org/pkg/io/ioutil/#ReadAll) method). It pays to study these packages carefully to understand how they work.
+In Go, the body is contained in the request object and is of type [io.Reader](https://golang.org/pkg/io/#Reader). We read the body as a byte stream using the [io/ioutil](https://golang.org/pkg/io/ioutil/) package (using the [ioutil.ReadAll()](https://golang.org/pkg/io/ioutil/#ReadAll) method). It pays to study these packages carefully to understand how they work.
 
 Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends on the header named `Content-Type`. In this example, the value is `application/json`. This is referred to in the CGI standard as a [MIME-Type](https://tools.ietf.org/html/rfc2046). We can find a pretty comprehensive list of MIME-Types [here](http://www.freeformatter.com/mime-types-list.html).
 
@@ -208,15 +311,15 @@ Content-Type: application/x-www-form-urlencoded
 nick_name=Big+Dave&nick_name=Bad+Dave&last_name=Johnson
 ```
 
-As we can see in the above example, the `Content-Type` header is key to understanding what exactly is contained in the body and how to interpret it. The site httpbin.org must interpret the data being sent and process it into a return. This is the same thing that our own CGI program would do if it were receiving this data.
+As we can see in the above example, the `Content-Type` header is key to understanding what is contained in the body and how to interpret it. The site httpbin.org must interpret the data being sent and process it into a return. This is the same thing that our own CGI program would do if it were receiving this data.
 
-Fortunately, Go  makes interpreting this type of data very easy with the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method. This method parses the form data and places it in the [Request.Form](https://golang.org/pkg/net/http/#Request) data type which is  ... drum roll please ... type `map[string][]string` (surprise).
+Fortunately, Go  makes interpreting this type of data very easy with the [Request.ParseForm()](https://golang.org/pkg/net/http/#Request.ParseForm) method. This method parses the form data and places it in the [Request.Form](https://golang.org/pkg/net/http/#Request) data type which is  ... drum roll please ... type `map[string][]string` (surprise).
 
 **Exercise 4: Write a service to receive application/x-www-form-urlencoded.**
 
-It's time to write our first web service. In this exercise we'll be introduced to http.ListenAndServe (which stands up a web service) and http.HandleFunc (which handles requests). We'll also use the JSON encoder to send back json data to the requester.
+It's time to write our first web service. In this exercise we'll be introduced to the [http.ListenAndServe()](https://golang.org/pkg/net/http/#ListenAndServe) method (which stands up a web service) and the [http.HandleFunc()](https://golang.org/pkg/net/http/#HandleFunc) (which handles requests). We'll also use the [JSON encoder](https://golang.org/pkg/encoding/json/) to send back json data to the requester.
 
-The solution to exercise 4 is listed below (see also exercise4.go in this repo). We can use `go run exercise4.go &` to run the program and put it in the background (note the & at the end of the command):
+The solution to exercise 4 is listed below (see also exercise4.go in this repo). We can issue the command `go run exercise4.go &` to run the program and put it in the background (note the & at the end of the command):
 
 ```go
  1 package main
@@ -256,8 +359,8 @@ curl -v 127.0.0.1:8080/v2/contacts \
 
 The response coming back from curl might look like this:
 
-```json
-*   Trying 127.0.0.1...
+```
+* Trying 127.0.0.1...
 * Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0)
 > POST /v2/contacts HTTP/1.1
 > Host: 127.0.0.1:8080
@@ -276,22 +379,22 @@ The response coming back from curl might look like this:
 {"last_name":["Johnson"],"nick_name":["Big Dave","Bad Dave"]}
 ```
 
-Issue a command `pkill exercise4` to stop the program.
+Issue the command `pkill exercise4` to stop the program.
 
 In the above code example:
 * We defined in main() a path that matches a handler function (line 19). This is part of Go's multiplex capabilities. This makes it possible to route different paths to different handlers.
-* The function http.HandleFunc (line 19) requires that the handler function (line 9) accept [two parameters](https://golang.org/pkg/net/http/#Handler): A [ResponseWriter](https://golang.org/pkg/net/http/#ResponseWriter) and a pointer to the Request object (which we are already familiar with).
+* The function http.HandleFunc() (line 19) requires that the handler function (line 9) accept [two parameters](https://golang.org/pkg/net/http/#Handler): A [ResponseWriter](https://golang.org/pkg/net/http/#ResponseWriter) and a pointer to the Request object (which we are already familiar with).
 * We also defined in the main() function a http server that listens for requests (line 20).
-* A handler function  `postContact` (line 9) is defined so that we can read the request and write a response. The ResponseWriter is used to write back a response to the requester (lines 12-14). The Request object contains the data sent to the CGI program by the client (line 9).
+* A handler function  `postContact()` (line 9) is defined so that we can read the request and write a response. The ResponseWriter object is used to write back a response to the requester (lines 12-14). The Request object contains the data sent to the CGI program by the client (line 9).
 * Note that we are able to test the HTTP method and content-type (line 10) to determine if we received the expected CGI encoding from the client.
-* The handler invoked the [Request.ParseForm](https://golang.org/pkg/net/http/#Request.ParseForm) method (line 11) to parse the data into a native data type `map[string][]string`. Note that ParseForm() must be called before reading the Request.Body.
+* The handler invoked the [Request.ParseForm()](https://golang.org/pkg/net/http/#Request.ParseForm) method (line 11) to parse the data into a native data type `map[string][]string`. Note that Request.ParseForm() must be called before reading the Request.Body.
 * The return MIME-Type was set to `application/json` (line 12). Note that the `Content-Type` header must be written before the body or return status.
-* The form data was converted to json (using the [json.NewEncoder](https://golang.org/pkg/encoding/json/) method) and written back as a response (line 13).  
+* The form data was converted to json (using the [json.NewEncoder()](https://golang.org/pkg/encoding/json/) method) and written back as a response (line 13).  
 * A status code of 200 (OK) was written to the response (line 14). We can find a list of HTTP status codes and their meaning [here](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html). The HTTP status code is part of the CGI standard and is used by the client to quickly discovery whether or not the request was successful or not and why.
 
 #### MIME-Type multipart/form-data
 
-The MIME-Type `multipart/form-data` is another frequently used method to POST data to a server-side CGI program. A web browser can code form data in this format before POSTing it to the server.
+The MIME-Type `multipart/form-data` is another frequently used encoding to POST data to a server-side CGI program. A web browser can code form data in this format before POSTing it to the server.
 
 Borrowing from exercise 4, let's say we are hosting a HTML page with a web form that is slightly different than before:
 
@@ -326,7 +429,7 @@ Johnson
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 ```
 
-Ok, this looks a lot more complex to process than the `x-www-form-urlencoded` encoding in exercise 4. Fortunately, Go comes to the rescue again and makes this relatively easy by providing the [ParseMultipartForm](https://golang.org/pkg/net/http/#Request.ParseMultipartForm) method which places the data in [MultipartForm](https://golang.org/pkg/net/http/#Request) field in the Request object.
+Ok, this looks a lot more complex to process than the `x-www-form-urlencoded` encoding in exercise 4. Fortunately, Go comes to the rescue again and makes this relatively easy by providing the [Request.ParseMultipartForm()](https://golang.org/pkg/net/http/#Request.ParseMultipartForm) method which places the data in [Request.MultipartForm](https://golang.org/pkg/net/http/#Request) field in the Request object.
 
 **Exercise 5: Write a program to receive multipart/form-data.**
 
@@ -376,7 +479,7 @@ $ curl -v 127.0.0.1:8080/v2/contacts \
 ```
 The output might look like the following:
 
-```json
+```
 > POST /v2/contacts HTTP/1.1
 > Host: 127.0.0.1:8080
 > User-Agent: curl/7.47.0
@@ -439,11 +542,11 @@ fQo=
 Be sure to issue a `pkill exercise5` command to stop the program.
 
 In the above example, there are a lot of interesting things going on:
-* In the `postContact` handler (line 12), we altered the test for Content-Type to use `Contains` instead of an exact match. The reason for this is that the header name in this case is actually `Content-Type: multipart/form-data; boundary=------------------------b8d179fba566a850`, so we have to search for a partial match.
-* We use the `ParseMultipartForm` method (line 13) instead of the `ParseForm` method of exercise 4. There are different methods for different MIME-Types.
+* In the `postContact()` handler (line 12), we altered the test for Content-Type to use the `strings.Contains()` meathod instead of an exact match. The reason for this is that the header name in this case is actually `Content-Type: multipart/form-data; boundary=------------------------b8d179fba566a850`, so we have to search for a partial match.
+* We use the `Request.ParseMultipartForm()` method (line 13) instead of the `Request.ParseForm()` method of exercise 4. There are different methods for different MIME-Types.
 * The data ends up in `Request.MultipartForm` (line 13) instead of `Request.Form` of exercise 4. There are different data structure for different MIME-Types.
 * Note that a file was included in the curl request. This is the main reason to use `multipart/form-data` in the first place. The data and the file are different parts of the request (thus `multipart`).
-* The uploaded file can be read by using the [FormFile](https://golang.org/pkg/net/http/#Request.FormFile) data element in the Request object (line 16).
+* The uploaded file can be read by using the [Request.FormFile](https://golang.org/pkg/net/http/#Request.FormFile) data element in the Request object (line 16).
 * For demonstration purposes, we just output the raw file as part of the response (line 20).
 * There are many gems in the Request object that are worth studying.
 
@@ -522,7 +625,7 @@ curl -sv -XPOST 127.0.0.1:8080/v2/contacts \
 
 The response will look similar to the following:
 
-```json
+```
 *   Trying 127.0.0.1...
 * Connected to 127.0.0.1 (127.0.0.1) port 8080 (#0)
 > POST /v2/contacts HTTP/1.1
