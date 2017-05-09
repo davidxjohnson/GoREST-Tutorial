@@ -65,41 +65,41 @@ Imagine if we had to write code to validate all of the above for every field in 
 We'll start using JSON schemas in section 4 but we only touch on the topic in this section because we're focused on basic concepts first and will get into more advanced items later on. Nevertheless, just for the sake of awareness, let's look at a simple example of a JSON schema:
 
 ```json
- 1 {
- 2     "$schema": "http://json-schema.org/draft-04/schema#",
- 3     "additionalProperties": false,
- 4     "definitions": {},
- 5     "id": "http://example.com/example.json",
- 6     "properties": {
- 7         "age": {
- 8             "id": "/properties/age",
- 9             "type": "integer"
-10         },
-11         "last_name": {
-12             "id": "/properties/last_name",
-13             "type": "string"
-14         },
-15         "nick_names": {
-16             "id": "/properties/nick_names",
-17             "items": {
-18                 "id": "/properties/nick_names/items",
-19                 "type": "string"
-20             },
-21             "type": "array"
-22         },
-23         "retired": {
-24             "id": "/properties/retired",
-25             "type": "boolean"
-26         }
-27     },
-28     "required": [
-29         "nick_names",
-30         "last_name",
-31         "retired",
-32         "age"
-33     ],
-34     "type": "object"
-35 }
+{
+   "$schema": "http://json-schema.org/draft-04/schema#",
+   "additionalProperties": false,
+   "definitions": {},
+   "id": "http://example.com/example.json",
+   "properties": {
+       "age": {
+           "id": "/properties/age",
+           "type": "integer"
+       },
+       "last_name": {
+           "id": "/properties/last_name",
+           "type": "string"
+       },
+       "nick_names": {
+           "id": "/properties/nick_names",
+           "items": {
+               "id": "/properties/nick_names/items",
+               "type": "string"
+           },
+           "type": "array"
+       },
+       "retired": {
+           "id": "/properties/retired",
+           "type": "boolean"
+       }
+   },
+   "required": [
+       "nick_names",
+       "last_name",
+       "retired",
+       "age"
+   ],
+   "type": "object"
+}
 ```
 
 The above schema is relatively simple. It will verify that all data types match and that all fields contain a value (required). This capability is very valuable to the REST programmer because such check are absolutely necessary to ensure that your program receives valid input.  The process of manually coding checks like this would be very tedious and repetitive indeed.
