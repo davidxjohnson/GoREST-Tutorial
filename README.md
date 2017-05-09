@@ -18,18 +18,18 @@
    * JSON concepts
    * CGI concepts
    * REST concepts
-1. Designing your first REST application
+1. Designing our first REST API
    * Taking a top-down approach with RAML
+   * Using JSON schemas in RAML
    * Publishing your API
-   * Generate boiler-plate Go code using RAML
+1. Writing our first REST API
    * The anatomy of a Go REST micro-service
+   * Write boiler-plate Go code using RAML
+   * Using JSON schemas in Go
 1. Adding some data
    * Data Elements
    * Methods
    * Integrating data into the handlers
-1. Data Validation
-   * Introduction to JSON schemas
-   * JSON Data validation in Go
 1. Unit Testing
    * Go test
    * Code coverage

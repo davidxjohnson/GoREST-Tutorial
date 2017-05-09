@@ -32,16 +32,16 @@ Here's a pretty print example of JSON:
 {
 	"contact_count ": 2,
 	"contacts": [{
-		"last_name": "Johnson",
-		"nick_names": ["Big Dave", "Bad Dave"],
-		"age": 50,
-    "retired": false
-	}, {
-		"last_name": "Jones",
-		"nick_names": ["Billy", "Bill"],
-		"age": 58,
-    "retired": true
-	}]
+      "last_name": "Johnson",
+	    "nick_names": ["Big Dave", "Bad Dave"],
+      "age": 50,
+      "retired": false
+    },{
+      "last_name": "Jones",
+      "nick_names": ["Billy", "Bill"],
+      "age": 58,
+      "retired": true
+    }]
 }
 ```
 
@@ -53,16 +53,56 @@ JSON schemas are similar in concept to XML schemas, but generally less complex t
 Probably the best way to learn how to use JSON schemas is to play around with an [editor](https://jsonschema.net/#/editor) to see what is possible.
 
 Below is an abbreviated list of the typical constraints used in JSON schemas:
-* Ensures that a field is of the correct data type.
+* Check that a field is of the correct data type.
 * Describes whether or not a value is required.
 * Restricts a valid value to a list of possible ones (enumeration) - i.e. fruit must be one of banana, apple or peach.
 * Sets minimum or maximum length or values for a field - i.e. disallow negative numbers, zip must be 5 in length etc.
 * Sets a regular expression pattern match to validate input for things like url, ip, phone numbers etc.
 * Enforces uniqueness within a list of values.
 
-Imagine if we had to write code to validate all of the above for every field in the JSON received for processing. That's a lot of coding. Fortunately, there are a growing list of schema validation packages for Go on GitHub. The one I've had personal experience with is [gojsonschema](https://github.com/xeipuuv/gojsonschema). It has good community support, easy to use and the one that we'll employ for this tutorial.
+Imagine if we had to write code to validate all of the above for every field in the JSON received for processing. That's a lot of coding. Fortunately, there are a growing list of schema validation packages for Go on GitHub. The one of primary interest in this tutorial is [gojsonschema](https://github.com/xeipuuv/gojsonschema). It has good community support, easy to use and the one we'll employ for this tutorial.
 
-We'll start using JSON schemas in section 6 but we only touch on the topic in this section because we're focused on basic concepts only.
+We'll start using JSON schemas in section 4 but we only touch on the topic in this section because we're focused on basic concepts first and will get into more advanced items later on. Nevertheless, just for the sake of awareness, let's look at a simple example of a JSON schema:
+
+```json
+ 1 {
+ 2     "$schema": "http://json-schema.org/draft-04/schema#",
+ 3     "additionalProperties": false,
+ 4     "definitions": {},
+ 5     "id": "http://example.com/example.json",
+ 6     "properties": {
+ 7         "age": {
+ 8             "id": "/properties/age",
+ 9             "type": "integer"
+10         },
+11         "last_name": {
+12             "id": "/properties/last_name",
+13             "type": "string"
+14         },
+15         "nick_names": {
+16             "id": "/properties/nick_names",
+17             "items": {
+18                 "id": "/properties/nick_names/items",
+19                 "type": "string"
+20             },
+21             "type": "array"
+22         },
+23         "retired": {
+24             "id": "/properties/retired",
+25             "type": "boolean"
+26         }
+27     },
+28     "required": [
+29         "nick_names",
+30         "last_name",
+31         "retired",
+32         "age"
+33     ],
+34     "type": "object"
+35 }
+```
+
+The above schema is relatively simple. It will verify that all data types match and that all fields contain a value (required). This capability is very valuable to the REST programmer because such check are absolutely necessary to ensure that your program receives valid input.  The process of manually coding checks like this would be very tedious and repetitive indeed.
 
 #### Some useful JSON Tutorials, Tools and References
 Here is a short list of useful JSON tools and tutorials:
@@ -75,12 +115,12 @@ Here is a short list of useful JSON tools and tutorials:
 * A growing list of JSON schema validation packages for Go: [https://github.com/search?l=Go&q=go+json+schema+validation]
 
 ### What is CGI?
-CGI stands for Common Gateway Interface. It's a standard protocol to convey information to a server-side program (web server) and receive a standardized reply. It was first codified as a standard in 1977 and is still widely used today. The original RFC [here](https://tools.ietf.org/html/rfc3875) has the details.
+We're going to fire-up the way-back machine here to rediscover something important that happened in the 1970s that is integral to this tutorial. It's called CGI, or Common Gateway Interface. It was first codified as a standard in 1977 and is widely used 40 years later. The original RFC is [here](https://tools.ietf.org/html/rfc3875) and worth a read. In a nutshell, CGI is a standard protocol to convey information to a server-side program (web server) and receive a standardized reply. We use CGI ont the web every day and probably aren't aware of it.
 
-The Go language has good support for this protocol and is one of the easiest ways to get up and going with a REST program.
+By the way, Go has excellent support for CGI and is one of the easiest ways to get up and going with a CGI/REST program.
 
-### URL Basics
-Grasping CGI concept requires an understanding of the anatomy of a URL:  
+#### URL Basics
+CGI evolved/improved in the 1980s with the use of URL standards (Uniform Resource Locater). We're all aware of these at least superficially but grasping CGI concepts requires a deeper understanding of the anatomy of a URL:
 
 `scheme:[//[user[:password]@]host[:port]][/path][?query][#fragment]`
 
@@ -159,10 +199,10 @@ There are some noteworthy items in the above example:
 * Note that the method [URL.Query()](https://golang.org/pkg/net/url/#URL.Query) (line 21) returns a [map of values](https://golang.org/pkg/net/url/#Values) `map[string][]string`. In the URL example above, the field nick_name appears twice, thus map["nick_name"] will return a []string array with two elements.
 * Because a field name can appear more than once, we use a nested for loop. The outer loop (line 22) ranges through the map and the inner loop (line 24) iterates through the []string array.
 
-### Headers
-There is more than one way to pass data to our Go program using the CGI protocol. In addition to the  query string, we can use headers. Headers can be passed to the CGI program by the client and also returned by the program to the client.
+#### Headers
+There is more than one way to pass data to our Go program using the CGI protocol. In addition to the query string, we can use headers.  Headers can be passed to the CGI program by the client and also returned by the program to the client. Headers became part of the HTTP protocol in the 90's and is now an integral part of CGI programming.
 
-There are a number of [built-in meta-variables](https://tools.ietf.org/html/rfc3875#section-4.1) as part of the CGI protocol (many of these are inserted by the host web service as headers). We can also pass data through custom headers.
+There are a number of [built-in meta-variables](https://tools.ietf.org/html/rfc3875#section-4.1) as part of the HTTP/CGI protocol (many of these are inserted by the host web service as headers). We can also pass data through custom headers.
 
 In Go, the [net/http](https://golang.org/pkg/net/http/) package handles http requests and responses. Headers are available in either the [Request object](https://golang.org/pkg/net/http/#Request) or the [Response object](https://golang.org/pkg/net/http/#Response) and take on the [same structure](https://golang.org/pkg/net/http/#Header) as query strings - i.e. `map[string][]string`.
 
@@ -273,20 +313,20 @@ In the above example:
 * Note that the body is in JSON format as indicated by the value of header `Content-Type` (application/json).
 * Note the use of `ioutil.ReadAll()` method (line 21) to read the body. We'll get into more detail on this next.
 
-### The Body and MIME-Types
-In exercise 3 we received data back in the CGI message body.
+#### The Body and MIME-Types
+As we learned in exercise 3, we can receive data back in the CGI message body.
+
+Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends primarily on the header named `Content-Type`. In exercise 3, the `Content-Type` is `application/json`. This is referred to in the CGI standard as a [MIME-Type](https://tools.ietf.org/html/rfc2046) (Multipurpose Internet Mail Extensions) and was codified as a standard in the late 1990s. As its name implies, the standard was originally intended for eMail, but it wasn't long after that MIME-Type definitions became widely used in Internet protocols as well. We can find a pretty comprehensive list of MIME-Types [here](http://www.freeformatter.com/mime-types-list.html).
 
 In Go, the body is contained in the request object and is of type [io.Reader](https://golang.org/pkg/io/#Reader). We read the body as a byte stream using the [io/ioutil](https://golang.org/pkg/io/ioutil/) package (using the [ioutil.ReadAll()](https://golang.org/pkg/io/ioutil/#ReadAll) method). It pays to study these packages carefully to understand how they work.
 
-Ok, so we can read the body, but how do we know how to process it? The way to interpret the body content depends on the header named `Content-Type`. In this example, the value is `application/json`. This is referred to in the CGI standard as a [MIME-Type](https://tools.ietf.org/html/rfc2046). We can find a pretty comprehensive list of MIME-Types [here](http://www.freeformatter.com/mime-types-list.html).
+This tutorial is mainly concerned with JSON as the data exchange format for our REST programming but there are a few other MIME-Types frequently used in CGI programming that are worth visiting first.
 
-This tutorial is mainly concerned with JSON as the data exchange format for our REST programming but there are a few other MIME-Types frequently used in CGI programming.
+##### MIME-Type x-www-form-urlencoded
 
-#### MIME-Type x-www-form-urlencoded
+The MIME-Type `x-www-form-urlencoded` showed uo in the 2000s and is often used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
 
-The MIME-Type `x-www-form-urlencoded` is often what is used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
-
-Let's say we are hosting a HTML page with a web form that looks like this:
+Let's say we are hosting a HTML page with a web form that looks something like this:
 
 ```html
 1 <form enctype="x-www-form-urlencoded" action="https://httpbin.org/post" method="post">
@@ -392,9 +432,9 @@ In the above code example:
 * The form data was converted to json (using the [json.NewEncoder()](https://golang.org/pkg/encoding/json/) method) and written back as a response (line 13).  
 * A status code of 200 (OK) was written to the response (line 14). We can find a list of HTTP status codes and their meaning [here](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html). The HTTP status code is part of the CGI standard and is used by the client to quickly discovery whether or not the request was successful or not and why.
 
-#### MIME-Type multipart/form-data
+##### MIME-Type multipart/form-data
 
-The MIME-Type `multipart/form-data` is another frequently used encoding to POST data to a server-side CGI program. A web browser can code form data in this format before POSTing it to the server.
+The MIME-Type `multipart/form-data` showed up in the late 1990s and is another frequently used encoding to POST data to a server-side CGI program. A web browser can code form data in this format before POSTing it to the server.
 
 Borrowing from exercise 4, let's say we are hosting a HTML page with a web form that is slightly different than before:
 
@@ -550,16 +590,15 @@ In the above example, there are a lot of interesting things going on:
 * For demonstration purposes, we just output the raw file as part of the response (line 20).
 * There are many gems in the Request object that are worth studying.
 
-#### MIME-Type application/json
+##### MIME-Type application/json
 
-There are other MIME-Types, but for the purposes of this tutorial, we will cover just one more of major significance in REST programming; which is (you guessed it) `application/json`.
+There are other MIME-Types, but for the purposes of this tutorial, we will cover just one more of major significance in REST programming; which is (you guessed it) `application/json`.  JSON has it's beginnings in the early 2000's but hasn't been standardized until early this decade. the JSON schema standard is relatively recent (starting in 2013), so our journey with the way-back machine has returned to our current decade.
 
 **Exercise 6: Write a program to receive application/json.**
 
 We've already created examples where we output JSON data from our CGI program. In this exercise, we will also receive JSON data and convert it to a native Go structure for processing. In many ways, it's one of the easiest MIME-Types to work with (we saved the best for the last).
 
 The solution to exercise 6 is listed below (see also exercise6.go in this repo) and we can run it with `go run exercise6.go &`.
-
 
 ```go
 1 package main
@@ -664,4 +703,71 @@ Now that we've covered numerous examples of how CGI works in Go, it's time to mo
 
 ### What is REST?
 
-Content TBD
+REST (Representational State Transfer) essentially defines the basic framework of nearly any REST-compliant CGI API. REST is more of a set of principles than it is a codified standard. It has its origins in the 1990s and published as a doctoral thesis in 2000 by [Roy Fielding](https://en.wikipedia.org/wiki/Roy_Fielding). The intent - in a nutshell - is to give every web resource a textual representation (in this case a URI) that can be operated upon with a standard set of verbs (GET, PUT, POST, DELETE etc). In this way, we move away from arbitrary resource representations commonly found with SOAP/WSDL and thereby form a more generic and uniform means to interact with data over HTTP.
+
+Unfortunately, REST API implementations vary with some API using verbs as endpoints whereas the growing consensus is to use nouns to describe an endpoint. Some API use the GET method and query strings to alter data, whereas CRUD (create, read, update and delete) operations are considered a best practice via HTTP methods. There is no consensus on whether to return XML or JSON, although JSON is growing in popularity (either data format is technically REST-compliant and capable of representing data in a standardized way). Lastly, there is no documentation standard for APIs, although Swagger and RAML are two popular tools for this purpose.
+
+#### General REST Guidelines
+
+Below are the general guidelines we will follow in this tutorial:
+* A collection of resources should be described by a plural noun - i.e. /contacts
+* Give endpoint representations for every object in a collection - i.e. /contacts/david.x.johnson
+* Endpoint resources should be stateless - i.e. the identifier is all that's needed to identify the resource
+* Heuristic versioning should be used to compartmentalize API versions - i.e. /api/v2/contacts
+* Operations on resources should be CRUD-like using the appropriate HTTP method- i.e. GET, PUT, POST, DELETE, PATCH etc.
+* The use of query parameters should be limited to GET operations, although there may be justifiable exceptions.
+* Each REST API call should return a HTTP status code and some content (if appropriate).
+* Content is preferably returned in the message body and must match the MIME-Type in the header "Content-Type".
+* JSON is the preferred data format for the purposes of this tutorial.
+* We'll be using RAML to sketch out and document our API in this tutorial.
+
+#### A Closer Look at HTTP Methods and Status Codes
+
+In REST programming, the HTTP Method is the action verb in a REST call. The client includes the method in the call to the server along with a resource identifier to operate on. The server responds with a status code and perhaps some data (only if necessary). We've already observed this type of communication in previous examples.
+
+POST request from client to create a new contact resource using version 2 of the api:
+
+```
+> POST /v2/contacts HTTP/1.1
+> Content-Type: application/json
+....
+```
+
+The server reply contains a status code and perhaps some data as well:
+
+```
+< HTTP/1.1 201 Created
+< Content-Type: application/json
+....
+```
+
+The use of HTTP methods can be an area of some confusion, particularly with PUT and POST. This tutorial interprets the most commonly used HTTP methods in the follow way:
+
+[Go Constant Name](https://golang.org/pkg/net/http/#pkg-constants) | [HTTP Method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html) | Interpretation | Typical Return Status
+---|---|---|---
+MethodGet | GET | Retrieves data without side-effects. In other words, it does not alter the data. Analogous to read.| 200 Ok, 404 Not Found
+MethodPost | POST | Uploads a representation of a new resource. Analogous to add new.| 200 Ok, 201 Created, 409 Conflict
+MethodPut | PUT | Uploads a replacement of an existing resource or creation of a new one if none exists that matches the data. Analogous to create or replace.| 200 Ok, 201 Created, 204 No Content
+MethodPatch | PATCH | RFC 5789 Replaces a portion or property of a resource. Analogous to a partial update.| 200 Ok, 204 No Content, 404 Not Found
+MethodDelete  | DELETE | Removes the resource (self explanatory). | 200 Ok, 204 No Content
+
+The following are some of the more common status codes we'll be working with in this tutorial:
+
+[Go Constant Name](https://golang.org/pkg/net/http/#pkg-constants)|[HTTP Status](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)|Interpretation|Typical methods
+---|---|---|---
+StatusOK | 200 | Indicates success and typically contains return data. |GET,POST,PUT
+StatusCreated| 201 | Indicates success in creating a new resource but typically does not include return data.| POST, PUT
+StatusNoContent | 204 | Indicates success in updating a resource but typically does not include return data.|PUT,PATCH,DELETE
+StatusBadRequest| 400 | Typically returned when data payload sent was malformed for the indicated method or Content-Type.| any
+StatusUnauthorized| 401 | Unauthorized. Usually an indication that requester credentials could not be authenticated.| any
+StatusForbidden | 403 | Forbidden. Usually a case where the requester is authenticated but not allowed to perform the operation.| any
+StatusNotFound | 404 | Not found. The resource URI is invalid. | GET, DELETE, PATCH
+StatusMethodNotAllowed | 405 | Method not allowed for the indicated resource URI.| any
+StatusConflict | 409 | Conflict. Can be used to indicate that a resource can't be created because it already exists.| POST
+StatusInternalServerError| 500 | Internal error. This is typically a critical error.| any
+
+Note: The confusion over PUT vs. POST is usually related to the fact that PUT is a create or replace operation; meaning that it will replace an existing resource with a new one or create that new one if the resource doesn't exist (and therefore is potentially destructive). POST - on the other hand - will only create the resource if it doesn't already exist (and therefore not destructive).
+
+### What's next?
+
+Ok, so we learned about JSON and JSON schemas, we had some fun with simple Go programs to process CGI requests and we now have a basic framework to develop a REST program. It's time to code, right? Not so fast, cowboy ... design tools are next ([section 4](../section4)).
