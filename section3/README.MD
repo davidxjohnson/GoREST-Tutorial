@@ -703,9 +703,9 @@ Now that we've covered numerous examples of how CGI works in Go, it's time to mo
 
 ### What is REST?
 
-REST (Representational State Transfer) essentially defines the basic framework of nearly any REST-compliant CGI API. REST is more of a set of principles than it is a codified standard. It has its origins in the 1990s and published as a doctoral thesis in 2000 by [Roy Fielding](https://en.wikipedia.org/wiki/Roy_Fielding). The intent - in a nutshell - is to give every web resource a textual representation (in this case a URI) that can be operated upon with a standard set of verbs (GET, PUT, POST, DELETE etc). In this way, we move away from arbitrary resource representations commonly found with SOAP/WSDL and thereby form a more generic and uniform means to interact with data over HTTP.
+REST (Representational State Transfer) has its origins in the 1990s and published as a doctoral thesis in 2000 by [Roy Fielding](https://en.wikipedia.org/wiki/Roy_Fielding). Essentially, defines the basic framework of nearly any REST-compliant CGI API. It's more of a set of principles than a codified standard. The intent - in a nutshell - is to give every web resource a textual representation (in this case a URI) that can be operated upon with a standard set of verbs (GET, PUT, POST, DELETE etc). In this way, we move away from arbitrary resource representations commonly found with SOAP/WSDL and thereby form a more generic and uniform means to interact with data over HTTP.
 
-Unfortunately, REST API implementations vary with some API using verbs as endpoints whereas the growing consensus is to use nouns to describe an endpoint. Some API use the GET method and query strings to alter data, whereas CRUD (create, read, update and delete) operations are considered a best practice via HTTP methods. There is no consensus on whether to return XML or JSON, although JSON is growing in popularity (either data format is technically REST-compliant and capable of representing data in a standardized way). Lastly, there is no documentation standard for APIs, although Swagger and RAML are two popular tools for this purpose.
+Unfortunately, REST API implementations vary with some API using verbs as endpoints whereas the growing consensus is to use nouns to describe an endpoint. Some API use the GET method and query strings to alter data, whereas CRUD (create, read, update and delete) operations are considered a best practice with HTTP methods being the verbs. There is no consensus on whether to return XML or JSON, although JSON is growing in popularity (either data format is technically REST-compliant and capable of representing data in a standardized way). Lastly, there is no documentation standard for APIs, although Swagger and RAML are two popular tools for this purpose.
 
 #### General REST Guidelines
 
@@ -725,31 +725,17 @@ Below are the general guidelines we will follow in this tutorial:
 
 In REST programming, the HTTP Method is the action verb in a REST call. The client includes the method in the call to the server along with a resource identifier to operate on. The server responds with a status code and perhaps some data (only if necessary). We've already observed this type of communication in previous examples.
 
-POST request from client to create a new contact resource using version 2 of the api:
-
-```
-> POST /v2/contacts HTTP/1.1
-> Content-Type: application/json
-....
-```
-
-The server reply contains a status code and perhaps some data as well:
-
-```
-< HTTP/1.1 201 Created
-< Content-Type: application/json
-....
-```
-
-The use of HTTP methods can be an area of some confusion, particularly with PUT and POST. This tutorial interprets the most commonly used HTTP methods in the follow way:
+This tutorial interprets the most commonly used HTTP methods in the follow way:
 
 [Go Constant Name](https://golang.org/pkg/net/http/#pkg-constants) | [HTTP Method](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html) | Interpretation | Typical Return Status
 ---|---|---|---
 MethodGet | GET | Retrieves data without side-effects. In other words, it does not alter the data. Analogous to read.| 200 Ok, 404 Not Found
-MethodPost | POST | Uploads a representation of a new resource. Analogous to add new.| 200 Ok, 201 Created, 409 Conflict
+MethodPost | POST | Uploads a representation of a new resource. Analogous to add new. Will not over-write a resource if it already exists.| 200 Ok, 201 Created, 409 Conflict
 MethodPut | PUT | Uploads a replacement of an existing resource or creation of a new one if none exists that matches the data. Analogous to create or replace.| 200 Ok, 201 Created, 204 No Content
-MethodPatch | PATCH | RFC 5789 Replaces a portion or property of a resource. Analogous to a partial update.| 200 Ok, 204 No Content, 404 Not Found
+MethodPatch | PATCH |Replaces a portion or property of a resource. Analogous to a partial update. See [RFC 5789](https://tools.ietf.org/html/rfc5789) | 200 Ok, 204 No Content, 404 Not Found
 MethodDelete  | DELETE | Removes the resource (self explanatory). | 200 Ok, 204 No Content
+
+Note: The frequent confusion over PUT vs. POST is usually related to the fact that PUT is a create or replace operation; meaning that it will replace an existing resource with a new one or create that new one if the resource doesn't already exist (and therefore potentially destructive). A PUT operation can return different success status codes depending on whether a new resource was created or an existing one was replaced. POST - on the other hand - will only create the resource if it doesn't already exist (therefore not destructive). A POST will return 409 Conflict if the resource already exists.
 
 The following are some of the more common status codes we'll be working with in this tutorial:
 
@@ -765,8 +751,6 @@ StatusNotFound | 404 | Not found. The resource URI is invalid. | GET, DELETE, PA
 StatusMethodNotAllowed | 405 | Method not allowed for the indicated resource URI.| any
 StatusConflict | 409 | Conflict. Can be used to indicate that a resource can't be created because it already exists.| POST
 StatusInternalServerError| 500 | Internal error. This is typically a critical error.| any
-
-Note: The confusion over PUT vs. POST is usually related to the fact that PUT is a create or replace operation; meaning that it will replace an existing resource with a new one or create that new one if the resource doesn't exist (and therefore is potentially destructive). POST - on the other hand - will only create the resource if it doesn't already exist (and therefore not destructive).
 
 ### What's next?
 
