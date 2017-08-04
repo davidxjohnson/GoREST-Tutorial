@@ -1,7 +1,9 @@
 # GoREST-Tutorial
 ## Section 3: Concepts
 ### What is JSON?
-JSON stands for JavaScript Object Notation, It's a simple and light-weight data encoding standard. It's generally easier to read, code and decode than XML (SOAP) which is probably why JSON has grow in popularity.
+**Note:** This tutorial covers a few different data payload formats, although JSON is the preferred format for the purposes of this tutorial. The JSON `Content-Type` is introduced in this section and used almost exclusively in section 4 and beyond.
+
+JSON stands for JavaScript Object Notation, It's a simple and light-weight data encoding standard that is generally easier to read, code and decode than XML (SOAP) ... which is a big reason why JSON has grow in popularity.
 
 #### JSON Data Types
 There are a fairly limited number of data types defined in JSON:
@@ -48,6 +50,8 @@ Here's a pretty print example of JSON:
 For reference, the native Go package used to process JSON: [https://golang.org/pkg/encoding/json/] We'll use this package later in this section to send and receive json data in our Go program.
 
 #### JSON Schemas
+**Note:** JSON schemas are introduced in this section and used extensively in section 4 and beyond.
+
 JSON schemas are similar in concept to XML schemas, but generally less complex than their XML brethren. A JSON schema is itself JSON, but it's data about the data (metadata) that expresses constraints about JSON documents.
 
 Probably the best way to learn how to use JSON schemas is to play around with an [editor](https://jsonschema.net/#/editor) to see what is possible.
@@ -60,9 +64,9 @@ Below is an abbreviated list of the typical constraints used in JSON schemas:
 * Sets a regular expression pattern match to validate input for things like url, ip, phone numbers etc.
 * Enforces uniqueness within a list of values.
 
-Imagine if we had to write code to validate all of the above for every field in the JSON received for processing. That's a lot of coding. Fortunately, there are a growing list of schema validation packages for Go on GitHub. The one of primary interest in this tutorial is [gojsonschema](https://github.com/xeipuuv/gojsonschema). It has good community support, easy to use and the one we'll employ for this tutorial.
+Imagine if we had to write code to validate all of the above for every field in the JSON submitted for processing. That's a lot of coding. Fortunately, there are a growing list of schema validation packages for Go on GitHub. The one of primary interest in this tutorial is [gojsonschema](https://github.com/xeipuuv/gojsonschema). It has good community support, easy to use and the one we'll employ for this tutorial starting in section 5.
 
-We'll start using JSON schemas in section 4 but we only touch on the topic in this section because we're focused on basic concepts first and will get into more advanced items later on. Nevertheless, just for the sake of awareness, let's look at a simple example of a JSON schema:
+For now, we're focused on basic concepts first and will get into more advanced items later on. Just for the sake of awareness, let's look at a simple example of a JSON schema:
 
 ```json
 {
@@ -102,7 +106,7 @@ We'll start using JSON schemas in section 4 but we only touch on the topic in th
 }
 ```
 
-The above schema is relatively simple. It will verify that all data types match and that all fields contain a value (required). This capability is very valuable to the REST programmer because such check are absolutely necessary to ensure that your program receives valid input.  The process of manually coding checks like this would be very tedious and repetitive indeed.
+The above schema is relatively simple. It will verify that all fields match the desired data type and that all fields contain a value (required). This capability is very valuable to the REST programmer because such checks are absolutely necessary to ensure that our program receives valid input.  The process of manually coding checks like this would be very tedious and repetitive indeed.
 
 #### Some useful JSON Tutorials, Tools and References
 Here is a short list of useful JSON tools and tutorials:
@@ -115,9 +119,9 @@ Here is a short list of useful JSON tools and tutorials:
 * A growing list of JSON schema validation packages for Go: [https://github.com/search?l=Go&q=go+json+schema+validation]
 
 ### What is CGI?
-We're going to fire-up the way-back machine here to rediscover something important that happened in the 1970s that is integral to this tutorial. It's called CGI, or Common Gateway Interface. It was first codified as a standard in 1977 and is widely used 40 years later. The original RFC is [here](https://tools.ietf.org/html/rfc3875) and worth a read. In a nutshell, CGI is a standard protocol to convey information to a server-side program (web server) and receive a standardized reply. We use CGI ont the web every day and probably aren't aware of it.
+We're going to fire-up the way-back machine here to rediscover something important that happened in the 1970s that is integral to this tutorial. It's called CGI, or Common Gateway Interface. It was first codified as a standard in 1977 and is widely used 40 years later. The original RFC is [here](https://tools.ietf.org/html/rfc3875) and worth a read. In a nutshell, CGI is a standard protocol to convey information to a server-side program (web server) and receive a standardized reply. We use CGI on the web every day and probably aren't aware of it.
 
-By the way, Go has excellent support for CGI and is one of the easiest ways to get up and going with a CGI/REST program.
+Go has excellent support for CGI and is one of the easiest ways to get up and going with a CGI/REST program.
 
 #### URL Basics
 CGI evolved/improved in the 1980s with the use of URL standards (Uniform Resource Locater). We're all aware of these at least superficially but grasping CGI concepts requires a deeper understanding of the anatomy of a URL:
@@ -196,7 +200,7 @@ Fragment is: page1
 
 There are some noteworthy items in the above example:
 * The url.Parse() method (line 10) returns a [URL struct object](https://golang.org/pkg/net/url/#URL). Inside that struct is an object of type [Userinfo](https://golang.org/pkg/net/url/#Userinfo) which is [operated on](https://golang.org/src/net/url/url.go?s=9790:9872#L336) by several methods (notably URL.User.Password() and URL.User.Username()).
-* Note that the method [URL.Query()](https://golang.org/pkg/net/url/#URL.Query) (line 21) returns a [map of values](https://golang.org/pkg/net/url/#Values) `map[string][]string`. In the URL example above, the field nick_name appears twice, thus map["nick_name"] will return a []string array with two elements.
+* Note that the method [URL.Query()](https://golang.org/pkg/net/url/#URL.Query) (line 21) returns a [map of strings](https://golang.org/pkg/net/url/#Values) `map[string][]string`. In the URL example above, the field nick_name appears twice, thus map["nick_name"] will return a []string array with two elements.
 * Because a field name can appear more than once, we use a nested for loop. The outer loop (line 22) ranges through the map and the inner loop (line 24) iterates through the []string array.
 
 #### Headers
@@ -324,7 +328,7 @@ This tutorial is mainly concerned with JSON as the data exchange format for our 
 
 ##### MIME-Type x-www-form-urlencoded
 
-The MIME-Type `x-www-form-urlencoded` showed uo in the 2000s and is often used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
+The MIME-Type `x-www-form-urlencoded` showed up in the 2000s and is often used by web browsers to 'POST' form data to the CGI program. The term POST is a HTTP method (more on that later).
 
 Let's say we are hosting a HTML page with a web form that looks something like this:
 
@@ -703,9 +707,9 @@ Now that we've covered numerous examples of how CGI works in Go, it's time to mo
 
 ### What is REST?
 
-REST (Representational State Transfer) has its origins in the 1990s and published as a doctoral thesis in 2000 by [Roy Fielding](https://en.wikipedia.org/wiki/Roy_Fielding). Essentially, defines the basic framework of nearly any REST-compliant CGI API. It's more of a set of principles than a codified standard. The intent - in a nutshell - is to give every web resource a textual representation (in this case a URI) that can be operated upon with a standard set of verbs (GET, PUT, POST, DELETE etc). In this way, we move away from arbitrary resource representations commonly found with SOAP/WSDL and thereby form a more generic and uniform means to interact with data over HTTP.
+REST (Representational State Transfer) has its origins in the 1990s and published as a doctoral thesis in 2000 by [Roy Fielding](https://en.wikipedia.org/wiki/Roy_Fielding). Essentially, it defines the basic framework of nearly any REST-compliant CGI API. It's more of a set of principles than a codified standard. The intent - in a nutshell - is to give every web resource a textual representation (in this case a URI) that can be operated upon with a standard set of verbs (GET, PUT, POST, DELETE etc). In this way, we move away from arbitrary resource representations commonly found with SOAP/WSDL and thereby form a more generic and uniform means to interact with data over HTTP.
 
-Unfortunately, REST API implementations vary with some API using verbs as endpoints whereas the growing consensus is to use nouns to describe an endpoint. Some API use the GET method and query strings to alter data, whereas CRUD (create, read, update and delete) operations are considered a best practice with HTTP methods being the verbs. There is no consensus on whether to return XML or JSON, although JSON is growing in popularity (either data format is technically REST-compliant and capable of representing data in a standardized way). Lastly, there is no documentation standard for APIs, although Swagger and RAML are two popular tools for this purpose.
+Unfortunately, REST API implementations vary with some API using verbs as endpoints whereas the growing consensus is to use nouns to describe an endpoint. Some API use the GET method and query strings to alter data, whereas CRUD (create, read, update and delete) operations are considered a best practice with HTTP methods being the verbs. There is no consensus on whether to return XML or JSON, although JSON is growing in popularity (either data format is technically REST-compliant and capable of representing data in a standardized way). Lastly, there is no documentation standard for APIs, although Swagger and RAML are two popular formats for this purpose.
 
 #### General REST Guidelines
 
@@ -719,7 +723,7 @@ Below are the general guidelines we will follow in this tutorial:
 * Each REST API call should return a HTTP status code and some content (if appropriate).
 * Content is preferably returned in the message body and must match the MIME-Type in the header "Content-Type".
 * JSON is the preferred data format for the purposes of this tutorial.
-* We'll be using RAML to sketch out and document our API in this tutorial.
+* We'll be using RAML to sketch out and document our API in this tutorial (section 4).
 
 #### A Closer Look at HTTP Methods and Status Codes
 
@@ -735,17 +739,17 @@ MethodPut | PUT | Uploads a replacement of an existing resource or creation of a
 MethodPatch | PATCH |Replaces a portion or property of a resource. Analogous to a partial update. See [RFC 5789](https://tools.ietf.org/html/rfc5789) | 200 Ok, 204 No Content, 404 Not Found
 MethodDelete  | DELETE | Removes the resource (self explanatory). | 200 Ok, 204 No Content
 
-Note: The frequent confusion over PUT vs. POST is usually related to the fact that PUT is a create or replace operation; meaning that it will replace an existing resource with a new one or create that new one if the resource doesn't already exist (and therefore potentially destructive). A PUT operation can return different success status codes depending on whether a new resource was created or an existing one was replaced. POST - on the other hand - will only create the resource if it doesn't already exist (therefore not destructive). A POST will return 409 Conflict if the resource already exists.
+Note: The frequent confusion over PUT vs. POST is usually related to the fact that PUT is a create or replace operation; meaning that it will replace an existing resource with a new one (and therefore potentially destructive) or create that new one if the resource doesn't already exist. A PUT operation can return different success status codes depending on whether a new resource was created or an existing one was replaced. POST - on the other hand - will only create the resource if it doesn't already exist (therefore not destructive). A POST will return 409 Conflict if the resource already exists.
 
 The following are some of the more common status codes we'll be working with in this tutorial:
 
 [Go Constant Name](https://golang.org/pkg/net/http/#pkg-constants)|[HTTP Status](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)|Interpretation|Typical methods
 ---|---|---|---
-StatusOK | 200 | Indicates success and typically contains return data. |GET,POST,PUT
+StatusOK | 200 | Indicates success and typically contains return data. |GET, POST, PUT
 StatusCreated| 201 | Indicates success in creating a new resource but typically does not include return data.| POST, PUT
-StatusNoContent | 204 | Indicates success in updating a resource but typically does not include return data.|PUT,PATCH,DELETE
+StatusNoContent | 204 | Indicates success in updating/deleting a resource but typically does not include return data.|PUT, PATCH, DELETE
 StatusBadRequest| 400 | Typically returned when data payload sent was malformed for the indicated method or Content-Type.| any
-StatusUnauthorized| 401 | Unauthorized. Usually an indication that requester credentials could not be authenticated.| any
+StatusUnauthorized| 401 | Unauthorized. Usually an indication that requester credentials could not be found or authenticated.| any
 StatusForbidden | 403 | Forbidden. Usually a case where the requester is authenticated but not allowed to perform the operation.| any
 StatusNotFound | 404 | Not found. The resource URI is invalid. | GET, DELETE, PATCH
 StatusMethodNotAllowed | 405 | Method not allowed for the indicated resource URI.| any
