@@ -1,5 +1,6 @@
 # GoREST-Tutorial
 ### REST micro-service concepts using the Go language.
+### Use this tutorial to quickly sharpen Go skills in REST
 
 **An outline for a Go REST tutorial:**
 

@@ -32,3 +32,20 @@ Here are a few examples:
 Ok, just because writing micro-services is easy with Go doesn't mean that one should go hog-wild with micro-services. They have their place with distinct advantages and disadvantages.
 
 ### Go minimum essentials:
+<<<<<<< HEAD
+=======
+At a minimum these are what you will need to get started with Go:
+#### GOPATH
+You will need to pick a place to put your projects and set the env GOPATH
+
+```export GOPATH=~/path/to/your/golang/projects```
+
+You will need to add the bin directory to your $PATH env variable
+
+```export PATH=$PATH:$GOPATH/bin```
+
+In the $GOPATH -
+* src - your source code
+* pkg - compiled go packages
+* bin - all your executables
+>>>>>>> 6b15faa5eb710bf444202321dca4df73756d869e
