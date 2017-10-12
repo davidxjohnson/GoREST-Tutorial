@@ -33,13 +33,16 @@ Ok, just because writing micro-services is easy with Go doesn't mean that one sh
 
 ### Go minimum essentials:
 At a minimum these are what you will need to get started with Go:
-##GOPATH
+#### GOPATH
 You will need to pick a place to put your projects and set the env GOPATH
-* export GOPATH=~/path/to/your/golang/projects
-You will need to add the bin directory to your $PATH env variable
-* export PATH=$PATH:$GOPATH/bin
-In the $GOPATH -
-src - your source code
-pkg - compiled go packages
-bin - all your executables 
 
+```export GOPATH=~/path/to/your/golang/projects```
+
+You will need to add the bin directory to your $PATH env variable
+
+```export PATH=$PATH:$GOPATH/bin```
+
+In the $GOPATH -
+* src - your source code
+* pkg - compiled go packages
+* bin - all your executables
